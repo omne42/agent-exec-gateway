@@ -1,0 +1,56 @@
+name: Deploy Docs to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**"
+      - "Cargo.toml"
+      - "README.md"
+      - ".github/workflows/docs-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install docs tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs==1.6.1 mkdocs-material==9.7.3 mike==2.1.3 pymdown-extensions==10.21
+
+      - name: Configure git identity for mike
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Resolve docs version from Cargo.toml
+        id: version
+        run: |
+          VERSION=$(grep '^version\s*=\s*"' Cargo.toml | head -n1 | sed -E 's/version\s*=\s*"([^"]+)"/\1/')
+          echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy versioned docs
+        run: |
+          mike deploy --push --update-aliases "v${{ steps.version.outputs.value }}" latest
+          mike set-default --push latest
