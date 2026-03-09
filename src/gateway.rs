@@ -327,14 +327,8 @@ mod tests {
     fn capability_report_matches_supported_isolation() {
         let gateway = ExecGateway::with_supported_isolation(IsolationLevel::BestEffort);
         let report = gateway.capability_report();
-        assert_eq!(
-            report.supported_isolation,
-            IsolationLevel::BestEffort
-        );
-        assert_eq!(
-            report.policy_default_isolation,
-            IsolationLevel::BestEffort
-        );
+        assert_eq!(report.supported_isolation, IsolationLevel::BestEffort);
+        assert_eq!(report.policy_default_isolation, IsolationLevel::BestEffort);
     }
 
     #[test]
@@ -409,10 +403,8 @@ mod tests {
             allow_isolation_none: true,
             ..GatewayPolicy::default()
         };
-        let gateway = ExecGateway::with_policy_and_supported_isolation(
-            policy,
-            IsolationLevel::BestEffort,
-        );
+        let gateway =
+            ExecGateway::with_policy_and_supported_isolation(policy, IsolationLevel::BestEffort);
         let workspace = tempdir().expect("create temp workspace");
         let request = ExecRequest::new(
             "echo",
